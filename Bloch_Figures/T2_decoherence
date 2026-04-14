@@ -1,0 +1,59 @@
+import numpy as np
+from qutip import Bloch
+import matplotlib.pyplot as plt
+import imageio.v2 as imageio
+
+# Time
+tlist = np.linspace(0, 5, 100)
+
+# Number of spins
+N = 10
+
+# Frequency spread (controls T2)
+omega0 = 2.0
+delta = 0.5
+
+# Random frequency offsets
+omegas = np.random.normal(omega0, delta, N)
+
+frames = []
+
+for t in tlist:
+    b = Bloch()
+    omega0 = np.mean(omegas)
+    vectors = []
+    xs, ys, zs = [], [], []
+
+    for w in omegas:
+        phi = (w - omega0) * t   # 🔥 rotating frame
+
+        x = np.cos(phi)
+        y = np.sin(phi)
+        z = 0
+
+        vectors.append([x, y, z])
+
+    # Add all spins
+    b.add_vectors(vectors)
+
+    # Add average
+    avg = np.mean(vectors, axis=0)
+    b.add_vectors(avg)
+
+    # Colors: spins + average
+    b.vector_color = ['blue'] * len(vectors) + ['red']
+    b.vector_width = 2
+
+    b.render()
+
+    fig = b.fig
+    fig.canvas.draw()
+
+    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+    image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+    frames.append(image)
+    plt.close(fig)
+
+# Save GIF
+imageio.mimsave(r"C:\Users\AnastasiaVelentza\Downloads\t2_ensemble.gif", frames, fps=50, loop=0)
