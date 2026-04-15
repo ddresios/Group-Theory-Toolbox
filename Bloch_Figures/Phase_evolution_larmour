@@ -1,0 +1,40 @@
+import numpy as np
+from qutip import Bloch
+import matplotlib.pyplot as plt
+import imageio.v2 as imageio
+
+# Time
+tlist = np.linspace(0, 5, 60, endpoint=False)
+
+# Larmor frequency
+omega = 2*np.pi / 5
+
+frames = []
+
+for t in tlist:
+    b = Bloch()
+
+    # Phase evolution
+    phi = omega * t
+
+    x = np.cos(phi)
+    y = np.sin(phi)
+    z = 0
+
+    b.add_vectors([x, y, z])
+
+    b.vector_color = ['red']
+    b.vector_width = 3
+
+    b.render()
+
+    fig = b.fig
+    fig.canvas.draw()
+
+    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+    image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+    frames.append(image)
+    plt.close(fig)
+
+imageio.mimsave(r"C:\Users\AnastasiaVelentza\Downloads\larmor.gif", frames, fps=50, loop=0)
